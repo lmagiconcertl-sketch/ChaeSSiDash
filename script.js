@@ -11,11 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(btn.dataset.tab).classList.add('active');
   }));
 
-  // ---- 저장/로드 유틸 (localStorage) ----
+  // ---- 저장/로드 ----
   const load = (k, fb) => { try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? fb; }catch{return fb;} };
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-  // ---- 상태 ----
   const state = {
     sites: load('sites_v1', []),
     subs : load('subs_v1',  [])
@@ -139,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const act = e.target && e.target.dataset && e.target.dataset.act;
     if (!act) return;
 
-    // 사이트 삭제
     if (act === 'del-site') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i)) return;
@@ -150,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 사이트 수정 (빠른 prompt 방식)
     if (act === 'edit-site') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i) || !state.sites[i]) return;
@@ -167,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 구독 삭제
     if (act === 'del-sub') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i)) return;
