@@ -172,13 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const focusables = container.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');
     const first = focusables[0], last = focusables[focusables.length-1];
     if(first) first.focus();
-    container.addEventListener('keydown', onTrap);
     function onTrap(e){
       if(e.key !== 'Tab') return;
       if(!focusables.length) return;
       if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
       else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
     }
+    container.addEventListener('keydown', onTrap);
     container._trapHandler = onTrap;
   }
   function releaseFocus(){
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const setFav = () => { const u = normalizeUrl(mUrl.value); const f = faviconFrom(u); if(f) mFav.src = f; };
     setFav();
     mUrl.addEventListener('input', setFav);
-    modalHint.textContent = '엔터: 저장, ESC: 취소, 링크는 모달 밖에서만 열립니다.';
+    modalHint.textContent = '엔터: 저장, ESC: 취소';
     showModal();
 
     modalForm.onsubmit = (e) => {
@@ -361,9 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
   });
-
-  // 기존 폼으로도 "추가" 가능하지만, 모달로 추가하고 싶으면 아래 예시처럼 사용 가능:
-  // openSiteModal(-1); openSubModal(-1);
 
   // ===== 백업 / 복원 =====
   const btnExport = document.getElementById('btn-export');
