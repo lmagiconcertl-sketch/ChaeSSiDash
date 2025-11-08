@@ -138,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const act = e.target && e.target.dataset && e.target.dataset.act;
     if (!act) return;
 
+    // 사이트 삭제
     if (act === 'del-site') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i)) return;
@@ -148,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // 사이트 수정 (빠른 prompt 방식)
     if (act === 'edit-site') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i) || !state.sites[i]) return;
@@ -164,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // 구독 삭제
     if (act === 'del-sub') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i)) return;
@@ -171,6 +174,45 @@ document.addEventListener('DOMContentLoaded', () => {
       state.subs.splice(i, 1);
       save('subs_v1', state.subs);
       renderSubs();
+    }
+  });
+
+  // ===== 백업 / 복원 =====
+  const btnExport = document.getElementById('btn-export');
+  const fileImport = document.getElementById('file-import');
+
+  btnExport.addEventListener('click', () => {
+    try{
+      const payload = { sites: state.sites, subs: state.subs };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ai-dashboard-backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }catch(e){ alert('내보내기 실패'); console.error(e); }
+  });
+
+  fileImport.addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text || '{}');
+      const sites = Array.isArray(data.sites) ? data.sites : [];
+      const subs  = Array.isArray(data.subs)  ? data.subs  : [];
+      state.sites = sites;
+      state.subs  = subs;
+      save('sites_v1', state.sites);
+      save('subs_v1',  state.subs);
+      renderSites();
+      renderSubs();
+      alert('가져오기 완료');
+    }catch(err){
+      alert('가져오기 실패: 올바른 JSON인지 확인해주세요.');
+      console.error(err);
+    }finally{
+      e.target.value = '';
     }
   });
 
