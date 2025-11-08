@@ -1,8 +1,7 @@
-// 간단 버전: localStorage만 사용 (파일 연동은 다음 단계)
 document.addEventListener('DOMContentLoaded', () => {
   const USD_TO_KRW = 1380;
 
-  // 탭 전환
+  // ---- 탭 전환 ----
   const tabs = document.querySelectorAll('.tab-btn');
   const pages = document.querySelectorAll('.tab-content');
   tabs.forEach(btn => btn.addEventListener('click', () => {
@@ -12,19 +11,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(btn.dataset.tab).classList.add('active');
   }));
 
-  // 저장/로드 유틸
-  const load = (k, fallback) => {
-    try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fallback; } catch { return fallback; }
-  };
+  // ---- 저장/로드 유틸 (localStorage) ----
+  const load = (k, fb) => { try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? fb; }catch{return fb;} };
   const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-  // 상태
+  // ---- 상태 ----
   const state = {
     sites: load('sites_v1', []),
     subs : load('subs_v1',  [])
   };
 
-  // ========== SITES ==========
+  // ================= SITES =================
   const siteForm = document.getElementById('site-form');
   const siteList = document.getElementById('site-list');
   const siteName = document.getElementById('site-name');
@@ -55,15 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
           const domain = new URL(item.url).hostname;
           icon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
         } catch {}
-        const card = document.createElement('div'); card.className = 'site-card';
+
+        const card = document.createElement('div');
+        card.className = 'site-card';
         card.innerHTML = `
-          ${icon ? `<img src="${icon}" alt="">` : `<div style="width:18px;height:18px;border-radius:4px;background:#1a2030"></div>`}
-          <div class="meta">
-            <div class="name">${item.name}</div>
-            <div class="url"><a href="${item.url}" target="_blank" rel="noopener">${item.url}</a></div>
-          </div>
+          <a class="site-link" href="${item.url}" target="_blank" rel="noopener">
+            ${icon ? `<img src="${icon}" alt="">` : `<div style="width:22px;height:22px;border-radius:4px;background:#1a2030"></div>`}
+            <div class="meta">
+              <div class="name">${item.name}</div>
+              <div class="url">${item.url}</div>
+            </div>
+          </a>
           <div class="actions">
-            <button data-act="del-site" data-i="${item._i}">삭제</button>
+            <button data-act="edit-site" data-i="${item._i}" type="button">수정</button>
+            <button data-act="del-site"  data-i="${item._i}" type="button">삭제</button>
           </div>`;
         grid.appendChild(card);
       });
@@ -85,19 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSites();
   });
 
-  document.body.addEventListener('click', e => {
-    const act = e.target && e.target.dataset && e.target.dataset.act;
-    if (act === 'del-site') {
-      const i = Number(e.target.dataset.i);
-      if (Number.isNaN(i)) return;
-      if (!confirm('삭제할까요?')) return;
-      state.sites.splice(i, 1);
-      save('sites_v1', state.sites);
-      renderSites();
-    }
-  });
-
-  // ========== SUBSCRIPTIONS ==========
+  // ================= SUBSCRIPTIONS =================
   const subForm = document.getElementById('sub-form');
   const subList = document.getElementById('sub-list');
   const subTotals = document.getElementById('sub-totals');
@@ -120,22 +110,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const monthlyKRW = (s.type === 'monthly') ? base : base / 12;
       totalMonthlyKRW += monthlyKRW;
 
-      // 갱신일
       const last = new Date((s.date || '') + 'T00:00:00');
       const next = new Date(last);
       if (s.type === 'monthly') next.setMonth(last.getMonth() + 1);
       else next.setFullYear(last.getFullYear() + 1);
 
       const today = new Date(); today.setHours(0,0,0,0);
-      const diffDays = Math.ceil((next - today) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.ceil((next - today) / (1000*60*60*24));
       const badge = (diffDays >= 0 && diffDays <= 7) ? ` <span class="badge">${diffDays}일 후 갱신 임박!</span>` : '';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${s.name}<div style="color:#9bb0d4">${s.type==='monthly'?'월간':'연간'} / ${s.currency}</div></td>
-        <td>${KRW(monthlyKRW)}<div style="color:#a7b4cc">${USD(monthlyKRW / USD_TO_KRW)}</div></td>
+        <td>${KRW(monthlyKRW)}<div class="price-usd">${USD(monthlyKRW / USD_TO_KRW)}</div></td>
         <td>${next.toLocaleDateString('ko-KR')}${badge}</td>
-        <td><button data-act="del-sub" data-i="${i}">삭제</button></td>`;
+        <td><button data-act="del-sub" data-i="${i}" type="button">삭제</button></td>`;
       subList.appendChild(tr);
     });
 
@@ -145,22 +134,40 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="total-box"><h4>연간 총 구독료</h4><div class="price-krw">${KRW(totalMonthlyKRW*12)}</div><div class="price-usd">${USD(totalMonthlyUSD*12)}</div></div>`;
   }
 
-  subForm.addEventListener('submit', e => {
-    e.preventDefault();
-    state.subs.push({
-      name: subName.value.trim(),
-      cost: parseFloat(subCost.value),
-      currency: subCurrency.value,
-      type: subType.value,
-      date: subDate.value
-    });
-    save('subs_v1', state.subs);
-    subForm.reset();
-    renderSubs();
-  });
-
+  // ---- 공용 클릭(수정/삭제) ----
   document.body.addEventListener('click', e => {
     const act = e.target && e.target.dataset && e.target.dataset.act;
+    if (!act) return;
+
+    // 사이트 삭제
+    if (act === 'del-site') {
+      const i = Number(e.target.dataset.i);
+      if (Number.isNaN(i)) return;
+      if (!confirm('삭제할까요?')) return;
+      state.sites.splice(i, 1);
+      save('sites_v1', state.sites);
+      renderSites();
+      return;
+    }
+
+    // 사이트 수정 (빠른 prompt 방식)
+    if (act === 'edit-site') {
+      const i = Number(e.target.dataset.i);
+      if (Number.isNaN(i) || !state.sites[i]) return;
+      const cur = state.sites[i];
+
+      const newName = prompt('사이트 이름', cur.name ?? '') ?? cur.name;
+      const newUrl  = prompt('사이트 주소(URL)', cur.url ?? '') ?? cur.url;
+      const newCat  = prompt('카테고리 (conversationalAI / generativeAI / otherSites)', cur.category ?? 'otherSites') ?? cur.category;
+
+      if (!newName.trim() || !newUrl.trim()) return;
+      state.sites[i] = { name: newName.trim(), url: newUrl.trim(), category: (newCat || 'otherSites').trim() };
+      save('sites_v1', state.sites);
+      renderSites();
+      return;
+    }
+
+    // 구독 삭제
     if (act === 'del-sub') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i)) return;
@@ -171,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 초기 렌더
+  // ---- 초기 렌더 ----
   renderSites();
   renderSubs();
 });
