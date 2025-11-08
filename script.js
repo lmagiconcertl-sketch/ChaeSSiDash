@@ -138,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const act = e.target && e.target.dataset && e.target.dataset.act;
     if (!act) return;
 
-    // 사이트 삭제
     if (act === 'del-site') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i)) return;
@@ -149,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 사이트 수정 (빠른 prompt 방식)
     if (act === 'edit-site') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i) || !state.sites[i]) return;
@@ -166,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 구독 삭제
     if (act === 'del-sub') {
       const i = Number(e.target.dataset.i);
       if (Number.isNaN(i)) return;
@@ -182,15 +179,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileImport = document.getElementById('file-import');
 
   btnExport.addEventListener('click', () => {
-    try{
+    try {
       const payload = { sites: state.sites, subs: state.subs };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+      const filename = `ai-dashboard-backup_${new Date().toISOString().slice(0,10)}.json`;
+
+      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveOrOpenBlob(blob, filename);
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `ai-dashboard-backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(a.href);
-    }catch(e){ alert('내보내기 실패'); console.error(e); }
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    } catch (e) {
+      alert('내보내기 실패');
+      console.error(e);
+    }
   });
 
   fileImport.addEventListener('change', async (e) => {
