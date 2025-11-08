@@ -51,3 +51,9 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .price-krw{font-size:20px;font-weight:700}
 .price-usd{color:var(--ink-dim)}
 .badge{color:#ffe27a;font-size:12px}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.controls button{background:#203052;border:1px solid #2d446f;color:#dbe6ff;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+.import-label{background:#1b2336;border:1px solid #2a3a5e;color:#dbe6ff;padding:8px 12px;border-radius:10px;font-weight:700;cursor:pointer}
+.import-label input{display:none}
+
+
