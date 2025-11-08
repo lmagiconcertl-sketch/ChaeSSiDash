@@ -10,17 +10,69 @@
   <header class="topbar">
     <h1>AI Dashboard</h1>
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="sites">자주 가는 사이트</button>
-      <button class="tab-btn" data-tab="subs">AI 구독 관리</button>
+      <button class="tab-btn active" data-tab="sites" type="button">자주 가는 사이트</button>
+      <button class="tab-btn" data-tab="subs" type="button">AI 구독 관리</button>
     </nav>
   </header>
 
   <main>
+    <!-- SITES -->
     <section id="sites" class="tab-content active">
-      <div class="card">✅ 초기 설치 성공! (Sites 탭)</div>
+      <form id="site-form" class="card form">
+        <h2>사이트 추가</h2>
+        <div class="row">
+          <label>이름</label>
+          <input id="site-name" placeholder="예: ChatGPT" required>
+        </div>
+        <div class="row">
+          <label>주소(URL)</label>
+          <input id="site-url" type="url" placeholder="https://..." required>
+        </div>
+        <div class="row">
+          <label>카테고리</label>
+          <select id="site-cat" required>
+            <option value="conversationalAI">대화형 AI</option>
+            <option value="generativeAI">생성형 AI</option>
+            <option value="otherSites">그 외 사이트</option>
+          </select>
+        </div>
+        <button type="submit">추가</button>
+      </form>
+
+      <div id="site-list"></div>
     </section>
+
+    <!-- SUBSCRIPTIONS -->
     <section id="subs" class="tab-content">
-      <div class="card">✅ 초기 설치 성공! (Subscriptions 탭)</div>
+      <form id="sub-form" class="card form">
+        <h2>구독 추가</h2>
+        <div class="row"><label>서비스 이름</label><input id="sub-name" placeholder="예: Suno" required></div>
+        <div class="row"><label>구독료</label><input id="sub-cost" type="number" min="0" step="any" placeholder="금액" required></div>
+        <div class="row"><label>통화</label>
+          <select id="sub-currency">
+            <option value="KRW">KRW (₩)</option>
+            <option value="USD">USD ($)</option>
+          </select>
+        </div>
+        <div class="row"><label>구분</label>
+          <select id="sub-type">
+            <option value="monthly">월간</option>
+            <option value="yearly">연간</option>
+          </select>
+        </div>
+        <div class="row"><label>마지막 결제일</label><input id="sub-date" type="date" required></div>
+        <button type="submit">추가</button>
+      </form>
+
+      <div class="card">
+        <h2>내 구독</h2>
+        <table class="table">
+          <thead><tr><th>서비스</th><th>월 환산</th><th>다음 갱신일</th><th></th></tr></thead>
+          <tbody id="sub-list"></tbody>
+        </table>
+      </div>
+
+      <div id="sub-totals" class="totals"></div>
     </section>
   </main>
 
